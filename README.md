@@ -1,8 +1,9 @@
 # ganache-predeployed
 
-Extends [trufflesuite/ganache-cli](https://github.com/trufflesuite/ganache-cli#docker) Docker image by supporting deployment of smart contracts (libs) on the start of the development node.  
+Extends [trufflesuite/ganache-cli](https://github.com/trufflesuite/ganache-cli#docker) Docker image with smart contracts (libs) pre-deployment.  
 
 The image supports:
+- deployment as a part of the image (container) start process
 - declarative list of smart contracts to deploy
 - built-in HTTP-server to list pre-deployed smart contracts (and their addresses)
 - validation of actual addresses of deployed smart contracts against expected addresses     
@@ -10,7 +11,7 @@ The image supports:
 __Limitation:__
 smart contract constructor params unsupported.
 
-### Smart contract ABI
+### ABI-files
 The byte code of a smart contract must be provided to deploy the contract.  
 Therefore the ABI-file with (at least) the "bytecode" property must be mounted/copied inside a container.  
 _(see [GCP_ABI_FILES_FOLDER](#GCP_ABI_FILES_FOLDER))_
@@ -28,20 +29,24 @@ $ cat build/contracts/ProxyAdmin.json
 
 ### To run the Docker image (container)
 
-__Prerequisites__
-1. A folder with [smart contracts ABI-files](#Smart contract ABI) must be mounted/copied to the container  
+#### Prerequisite  
+A folder with [ABI-files](#ABI-files) must be mounted to the container  
 _(see [GCP_ABI_FILES_FOLDER](#GCP_ABI_FILES_FOLDER))_
-2. If not all smart contracts in that folder shall be deployed, a list of smart contracts to deploy shall be defined  
-_(see [GCP_LIBS_NAMES](#GCP_LIBS_NAMES), [GCP_EXPECTED_LIBS_FILE](#GCP_EXPECTED_LIBS_FILE))_
 
+#### Smart contract to deploy
+By default, all smart contracts found in the [ABI-files folder](#ABI-files) will be deployed.
+
+To deploy some of contracts only, either define [GCP_LIBS_NAMES](#GCP_LIBS_NAMES) param or list contracts in the [GCP_EXPECTED_LIBS_FILE](#GCP_EXPECTED_LIBS_FILE).
+
+#### Examples
+
+Providing ABI-files are in the `./contracts/` folder
 ```shell script
-# Providing ABI-files are in the `./contracts/` folder
 $ docker run -v ./contracts/:/app/build/contracts vkonst/ganache-predeployed
 ```
 
 Expose the rpc server on the port 8565
 ```shell script
-# Providing ABI-files are in the `./contracts/` folder
 $ docker run -d --rm --name ganache \
   -v ./contracts/:/app/build/contracts \
   -p 8565:8555 \
@@ -50,7 +55,6 @@ $ docker run -d --rm --name ganache \
 
 Serve a list of deployed contracts on the port 8089
 ```shell script
-# Providing ABI-files are in the `./contracts/` folder
 $ docker run -d --rm --name ganache \
   -v ./contracts/:/app/build/contracts \
   -p 8089:8080 -p 8565:8555 \
