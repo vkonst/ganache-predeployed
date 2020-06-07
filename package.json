@@ -1,0 +1,22 @@
+{
+  "name": "ganache-predeployed",
+  "version": "0.0.1",
+  "description": "trufflesuite/ganache-cli Docker image with easy contracts/libs PRE-deployment",
+  "scripts": {
+    "start": "./gcp-scripts/start.sh",
+    "build": "docker build -t vkonst/ganache-predeployed .",
+    "test": "echo \"Error: no test specified\" && exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vkonst/ganache-predeployed"
+  },
+  "keywords": [ "ganache", "ganache-cli", "docker", "EVM", "ethereum" ],
+  "author": "vadim.konstantinov@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vkonst/ganache-predeployed/issues"
+  },
+  "homepage": "https://github.com/vkonst/ganache-predeployed#readme",
+  "dependencies": { }
+}
