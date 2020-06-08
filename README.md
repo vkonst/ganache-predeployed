@@ -3,13 +3,12 @@
 Extends [trufflesuite/ganache-cli](https://github.com/trufflesuite/ganache-cli#docker) Docker image with smart contracts (libs) pre-deployment.  
 
 The image supports:
-- deployment as a part of the image (container) start process
-- declarative list of smart contracts to deploy
+- (pre-)deployment as a part of the image (container) start process
+- declarative list of smart contracts to pre-deploy
 - built-in HTTP-server to list pre-deployed smart contracts (and their addresses)
-- validation of actual addresses of deployed smart contracts against expected addresses     
+- validation of actual addresses of pre-deployed smart contracts against expected addresses     
  
-__Limitation:__
-smart contract constructor params unsupported.
+__Limitation:__ smart contract constructor params unsupported.
 
 ### ABI-files
 The byte code of a smart contract must be provided to deploy the contract.  
@@ -40,24 +39,26 @@ To deploy some of contracts only, either define [GCP_LIBS_NAMES](#GCP_LIBS_NAMES
 
 #### Examples
 
-Providing ABI-files are in the `./contracts/` folder
+Mount [ABI-files folder](#ABI-files) (`./contracts/`)
 ```shell script
 $ docker run -v ./contracts/:/app/build/contracts vkonst/ganache-predeployed
 ```
 
-Expose the rpc server on the port 8565
+Expose the rpc server on the port 8555
 ```shell script
-$ docker run -d --rm --name ganache \
+# Run in background, remove container when stopped,
+# name it `ganache` and make `default signal handlers` work
+$ docker run -d --rm --name ganache --init \
   -v ./contracts/:/app/build/contracts \
-  -p 8565:8555 \
+  -p 8555:8545 \
   vkonst/ganache-predeployed
 ```
 
 Serve a list of deployed contracts on the port 8089
 ```shell script
-$ docker run -d --rm --name ganache \
+$ docker run -d --rm --name ganache --init \
   -v ./contracts/:/app/build/contracts \
-  -p 8089:8080 -p 8565:8555 \
+  -p 8089:8080 -p 8555:8545 \
   -e GDEV_SERVE_DEPLOYED_LIBS_FILE=yes \
   vkonst/ganache-predeployed
 
@@ -76,7 +77,7 @@ $ docker build -t vkonst/ganache-predeployed .
 #### Environmental params 
 
 ##### GCP_ABI_FILES_FOLDER
-__default__: /app/build/contracts
+_default:_ `/app/build/contracts`
 
 Path to a folder (inside the container) with ABI-files of contracts.
 
@@ -92,9 +93,9 @@ ProxyAdmin.json
 ```
 
 ##### GCP_LIBS_NAMES
-__default__: void
+_default_: `undefined`
 
-List (delimited by ';' ) of contracts names or a single contract name to deploy.  
+List (delimited by `;` ) of contracts names or a single contract name to deploy.  
 Contract names are names of the ABI-files, w/o ".json" extensions.
 
 ```shell script
@@ -103,10 +104,13 @@ $ export GCP_LIBS_NAMES="ProxyAdmin;CollaborationImpl"
 ```
 
 ##### GCP_EXPECTED_LIBS_FILE
-__default__: /tmp/expected_contracts
+_default_: `/tmp/expected_contracts`
 
 File with  the list and expected addresses of smart contracts to deploy.  
 If a contract is on the list, the actual address the contract is deployed at is verified against the expected address.
+
+Should the address a contract is deployed at mismatches the expected address, the error is logged.  
+NOTE: Pass the `--init` flag to docker `run` command to make the error kill the running container.
 
 ```
 # One contract per line: `<contractName>=<expectedAddress>`
@@ -119,7 +123,7 @@ _EOF_
 ```
 
 ##### GCP_DEPLOYED_LIBS_FILE
-_default: /tmp/deployed_contracts_
+_default_: `/tmp/deployed_contracts`
 
 File to write (addresses of) deployed smart contracts in.  
 ```shell script
@@ -133,9 +137,11 @@ If [GCP_SERVE_DEPLOYED_LIBS_LIST](#GCP_SERVE_DEPLOYED_LIBS_LIST) set, this file 
 One may want to re-define it with another mounted (sharable) file or pipe.
 
 ##### GCP_EXPECTED_LIBS_ADRS
-_default: undefined_
+_default_: `undefined`
 
-List (delimited by ';') of expected addresses for the deployed contracts.
+List (delimited by `;`) of expected addresses of pre-deployed contracts.  
+Should the address a contract is deployed at mismatches the expected address, the error is logged.  
+NOTE: Pass the `--init` flag to docker `run` command to make the error kill the running container.
 
 ```shell script
 # For example:
@@ -143,7 +149,7 @@ $ export GCP_EXPECTED_LIBS_ADRS="ProxyAdmin=0x9c47796bc1e469a60dcbf680273ff011e4
 ```
 
 ##### GCP_SERVE_DEPLOYED_LIBS_LIST
-_default: undefined_
+_default_: `undefined`
 
 If defined, the list of the deployed contracts is served on the port 8080.  
 So dependent containers/processes may set/update addresses of deployed contracts.  
@@ -162,9 +168,15 @@ The server starts listening the port as soon as the smart contracts get deployed
 Use it to synchronise dependent containers.  
 
 ##### GCP_TIMEOUT_SECONDS
-_default: 15_
+_default_: `15`
 
 Timeout in seconds for starting `ganache-cli` and deploying smart contracts.
+
+##### GCP_STOP_ON_ERRORS
+_default_: `yes`
+
+If set to "no", mismatching expected addresses of deployed contracts do not kill the running container.  
+(See [GCP_EXPECTED_LIBS_ADRS](#GCP_EXPECTED_LIBS_ADRS) and [GCP_EXPECTED_LIBS_FILE](#GCP_EXPECTED_LIBS_FILE))
 
 ##### Other params
 ```shell script

@@ -16,7 +16,7 @@ const {
 const libsFolder = GCP_ABI_FILES_FOLDER || join(__dirname, '../', 'build/contracts/');
 const expected = parseExpectedAddresses(GCP_EXPECTED_LIBS_ADRS);
 const libs = GCP_LIBS_NAMES
-    ? GCP_LIBS_NAMES.split(';').map(s => s.trim())
+    ? GCP_LIBS_NAMES.replace(/;\s?$/, '').split(';').map(s => s.trim())
     : (expected ? Object.keys(expected) : listJsonFilesNames(libsFolder));
 const exportFile = GCP_DEPLOYED_LIBS_FILE;
 
@@ -103,7 +103,7 @@ function castGetReceiptData(txHash, id) {
 function castOptions(postData) {
     return {
         host: '127.0.0.1',
-        port: process.env.GANACHE_PORT || '8555',
+        port: process.env.GANACHE_PORT || '8545',
         method: 'POST',
         path: '/',
         headers: {
@@ -116,7 +116,7 @@ function castOptions(postData) {
 function panicIfUnexpected(instance, expected) {
     console.log(`${instance.contract} deployed at ${instance.address}`);
     if (expected) {
-        const {address: expAddr} = expected[instance.contract] || {};
+        const expAddr = expected[instance.contract] || {};
         if (expAddr && instance.address.toLowerCase() !== expAddr.toLowerCase()) {
             terminate(`unexpected address of ${instance.contract}: ${instance.address} != ${expAddr}`);
         }
@@ -135,7 +135,9 @@ function exportToFile(contracts, file) {
 function parseExpectedAddresses(str = '') {
     return str === ''
         ? null
-        : str.split(';').map(s => s.trim())
+        : str.replace(/;\s?$/, '')
+            .split(';')
+            .map(s => s.trim())
             .reduce((acc, v) => {
                 const [name, address] = v.split('=').map(s => s.trim());
                 if (!name || !address) {

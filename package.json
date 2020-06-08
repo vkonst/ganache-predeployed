@@ -1,6 +1,6 @@
 {
   "name": "ganache-predeployed",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "trufflesuite/ganache-cli Docker image with easy contracts/libs PRE-deployment",
   "scripts": {
     "start": "./gcp-scripts/start.sh",

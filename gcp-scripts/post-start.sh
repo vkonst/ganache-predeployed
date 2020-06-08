@@ -7,15 +7,25 @@ TIMEOUT_SECONDS=${GCP_TIMEOUT_SECONDS:-15};
 
 panic() {
   echo "ERR: $* ... terminating"
+  [ -z "${DOCKER}" ] || kill_container
   exit 1
 }
 
+kill_container() {
+  [ "${GCP_STOP_ON_ERRORS}" == "yes" ] || return
+  echo "!!!: ... killing docker container"
+  # pass `--init` to docker `run` to properly pass SIGTERM
+  kill 1
+}
+
 concat_lines() {
-  tr '\n' ';' < "${1}"
+  # remove empty lines then replace 'new line' with ';'
+  sed '/^\s*$/d' < "${1}" | \
+  tr '\n' ';'
 }
 
 # 0. if provided, get expected addresses of libs
-[ -z "${GCP_EXPECTED_LIBS_FILE}" ] && export GCP_EXPECTED_LIBS_FILE=/tmp/expected_contracts
+[ -z "${GCP_EXPECTED_LIBS_FILE}" ] && export GCP_EXPECTED_LIBS_FILE="/tmp/expected_contracts"
 [ -z "${GCP_DEPLOYED_LIBS_FILE}" ] && export GCP_DEPLOYED_LIBS_FILE="/tmp/deployed_contracts"
 [ -f "${GCP_EXPECTED_LIBS_FILE}" ] && export GCP_EXPECTED_LIBS_ADRS=$(concat_lines "${GCP_EXPECTED_LIBS_FILE}")
 

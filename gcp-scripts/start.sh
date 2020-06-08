@@ -2,7 +2,7 @@
 
 set -o errexit
 
-export GANACHE_PORT=8555
+export GANACHE_PORT=8545
 export GCP_ROOT="/app/gcp-scripts"
 
 tenEthers="10000000000000000000"
@@ -23,6 +23,7 @@ accounts="\
 
 # do post-start jobs in background
 [ -x "${GCP_ROOT}/post-start.sh" ] && (
+  [ -z "${GCP_STOP_ON_ERRORS}" ] && export GCP_STOP_ON_ERRORS=yes
   "${GCP_ROOT}/post-start.sh" &
 ) >&1 2>&1
 
