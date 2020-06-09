@@ -21,7 +21,8 @@ const libs = GCP_LIBS_NAMES
 const exportFile = GCP_DEPLOYED_LIBS_FILE;
 
 if (libs.length === 0){
-    terminate("failed to get the list of contracts to deploy");
+    console.log('WARNING: no contracts to pre-deploy');
+    process.exit();
 }
 
 let counter = 1;

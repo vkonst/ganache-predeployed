@@ -41,5 +41,5 @@ timeout -t "${TIMEOUT_SECONDS}" "${GCP_ROOT}/deployLibs.js" || \
 [ -z "${GCP_SERVE_DEPLOYED_LIBS_LIST}" ] ||
   exec "${GCP_ROOT}/serve_existing_file.sh" "${GCP_DEPLOYED_LIBS_FILE}"
 
-echo "[$0] DONE"
+echo "post-start.sh: exit"
 # exit 0
