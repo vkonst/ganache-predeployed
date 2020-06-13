@@ -5,9 +5,11 @@ Extends [trufflesuite/ganache-cli](https://github.com/trufflesuite/ganache-cli#d
 The image supports:
 - (pre-)deployment as a part of the image (container) start process
 - declarative list of smart contracts to pre-deploy
-- built-in HTTP-server to list pre-deployed smart contracts (and their addresses)
+- built-in HTTP-server that allows
+    - serving the list of pre-deployed smart contracts (and their addresses)
+    - killing the container
 - validation of actual addresses of pre-deployed smart contracts against expected addresses     
- 
+
 __Limitation:__ smart contract constructor params unsupported.
 
 ### ABI-files
@@ -26,6 +28,15 @@ $ cat build/contracts/ProxyAdmin.json
 }
 ```
 
+### Images
+####vkonst/ganache-predeployed (default)
+The image includes the (Tini utility - "a tiny but valid init for containers")[https://github.com/krallin/tini].    
+Use it if the built-in docker `init` is available (Docker 1.13 or greater, `docker stack` rather then `docker-compose`).
+
+####vkonst/ganache-predeployed:tiny
+The image includes the (Tini utility - "a tiny but valid init for containers")[https://github.com/krallin/tini].  
+For use in docker environments where built-in `init` is unavailable (e.g. with `docker-compose`).
+
 ### To run the Docker image (container)
 
 #### Prerequisite  
@@ -41,7 +52,7 @@ To deploy some of contracts only, either define [GCP_LIBS_NAMES](#GCP_LIBS_NAMES
 
 Mount [ABI-files folder](#ABI-files) (`./contracts/`)
 ```shell script
-$ docker run -v ./contracts/:/app/build/contracts vkonst/ganache-predeployed
+$ docker run -v ./contracts/:/app/build/contracts -p 8545:8545 vkonst/ganache-predeployed
 ```
 
 Expose the rpc server on the port 8555
@@ -52,6 +63,12 @@ $ docker run -d --rm --name ganache --init \
   -v ./contracts/:/app/build/contracts \
   -p 8555:8545 \
   vkonst/ganache-predeployed
+
+# the same using  `tini` image
+$ docker run -d --rm --name ganache \
+  -v ./contracts/:/app/build/contracts \
+  -p 8555:8545 \
+  vkonst/ganache-predeployed:tini
 ```
 
 Serve a list of deployed contracts on the port 8089
@@ -59,8 +76,15 @@ Serve a list of deployed contracts on the port 8089
 $ docker run -d --rm --name ganache --init \
   -v ./contracts/:/app/build/contracts \
   -p 8089:8080 -p 8555:8545 \
-  -e GDEV_SERVE_DEPLOYED_LIBS_FILE=yes \
+  -e GCP_SERVE_DEPLOYED_LIBS_FILE=yes \
   vkonst/ganache-predeployed
+
+# using image with `tini`:
+$ docker run -d --rm --name ganache \
+  -v ./contracts/:/app/build/contracts \
+  -p 8089:8080 -p 8555:8545 \
+  -e GCP_SERVE_DEPLOYED_LIBS_FILE=yes \
+  vkonst/ganache-predeployed:tini
 
 # to get the list:
 $ curl localhost:8089
@@ -71,7 +95,12 @@ LaborLedgerImpl=0x85a84691547b7ccf19d7c31977a7f8c0af1fb25a
 
 ### To build the Docker image
 ```shell script
-$ docker build -t vkonst/ganache-predeployed . 
+
+# default image - w/o `tini` (https://github.com/krallin/tini) 
+$ docker build -t vkonst/ganache-predeployed .
+
+# image with `tini` (https://github.com/krallin/tini)
+$ docker build -f ./Dockerfile-tini -t vkonst/ganache-predeployed:tiny .
 ```
 
 #### Environmental params 
@@ -111,7 +140,7 @@ If a contract is on the list, the actual address the contract is deployed at is 
 
 Should the address a contract is deployed at mismatches the expected address, the error is logged.  
 NOTE: Pass the `--init` flag to docker `run` command to make the error kill the running container.
-
+If your docker environment does not support `--tini` flag, use the `tini` image.
 ```
 # One contract per line: `<contractName>=<expectedAddress>`
 # Example:
@@ -142,6 +171,7 @@ _default_: `undefined`
 List (delimited by `;`) of expected addresses of pre-deployed contracts.  
 Should the address a contract is deployed at mismatches the expected address, the error is logged.  
 NOTE: Pass the `--init` flag to docker `run` command to make the error kill the running container.
+If your docker environment does not support `--tini` flag, use the `tini` image.
 
 ```shell script
 # For example:
@@ -162,6 +192,9 @@ $ curl localhost:8080
 ProxyAdmin=0x9c47796bc1e469a60dcbf680273ff011e45a1327
 CollaborationImpl=0x0f5ea0a652e851678ebf77b69484bfcd31f9459b
 LaborLedgerImpl=0x85a84691547b7ccf19d7c31977a7f8c0af1fb25a
+
+# to kill the container:
+curl localhost:8080/kill-container
 ```
 
 The server starts listening the port as soon as the smart contracts get deployed.  

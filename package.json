@@ -1,10 +1,11 @@
 {
   "name": "ganache-predeployed",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "trufflesuite/ganache-cli Docker image with easy contracts/libs PRE-deployment",
   "scripts": {
     "start": "docker run -p 127.0.0.1:8545:8545 vkonst/ganache-predeployed",
     "build": "docker build -t vkonst/ganache-predeployed .",
+    "build:tini": "docker build -f ./Dockerfile-tini -t vkonst/ganache-predeployed:tini .",
     "test": "echo \"Error: no test specified\" && exit"
   },
   "repository": {

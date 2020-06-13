@@ -39,7 +39,7 @@ timeout -t "${TIMEOUT_SECONDS}" "${GCP_ROOT}/deployLibs.js" || \
 
 # 3. if defined, serve over http addresses of deployed libs
 [ -z "${GCP_SERVE_DEPLOYED_LIBS_LIST}" ] ||
-  exec "${GCP_ROOT}/serve_existing_file.sh" "${GCP_DEPLOYED_LIBS_FILE}"
+  exec "${GCP_ROOT}/run_http_server.sh" "${GCP_DEPLOYED_LIBS_FILE}"
 
 echo "post-start.sh: exit"
 # exit 0

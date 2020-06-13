@@ -1,0 +1,12 @@
+FROM trufflesuite/ganache-cli:latest
+
+RUN apk add --no-cache tini
+
+WORKDIR /app
+
+COPY gcp-scripts ./gcp-scripts
+COPY build ./build
+
+EXPOSE 8080
+
+ENTRYPOINT ["/sbin/tini", "/app/gcp-scripts/start.sh"]
