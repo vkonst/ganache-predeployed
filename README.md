@@ -29,13 +29,14 @@ $ cat build/contracts/ProxyAdmin.json
 ```
 
 ### Images
-####vkonst/ganache-predeployed (default)
-The image includes the (Tini utility - "a tiny but valid init for containers")[https://github.com/krallin/tini].    
-Use it if the built-in docker `init` is available (Docker 1.13 or greater, `docker stack` rather then `docker-compose`).
 
-####vkonst/ganache-predeployed:tiny
-The image includes the (Tini utility - "a tiny but valid init for containers")[https://github.com/krallin/tini].  
-For use in docker environments where built-in `init` is unavailable (e.g. with `docker-compose`).
+- _vkonst/ganache-predeployed (default)_  
+The image does not includes the ["tini" utility](https://github.com/krallin/tini).     
+Use it if the built-in docker `--init` flag is available (Docker 1.13 or greater, `docker stack` rather then `docker-compose`).
+
+- _vkonst/ganache-predeployed:tiny_  
+The image includes the ["tini" utility - "a tiny but valid init for containers"](https://github.com/krallin/tini).   
+For use in docker environments where the built-in docker `--init` flag is unavailable (`docker-compose`).
 
 ### To run the Docker image (container)
 
